@@ -1,0 +1,10 @@
+README.md
+setup.py
+data.egg-info/PKG-INFO
+data.egg-info/SOURCES.txt
+data.egg-info/dependency_links.txt
+data.egg-info/requires.txt
+data.egg-info/top_level.txt
+kraken/__init__.py
+kraken/api.py
+kraken/kraken.py
