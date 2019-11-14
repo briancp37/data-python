@@ -3,6 +3,8 @@ import pandas as pd
 import json
 import csv
 import time
+import pandas_gbq as pd_gbq
+
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
@@ -89,46 +91,59 @@ pair = asset pair to get OHLC data for
 interval = time frame interval in minutes (optional): 1 (default), 5, 15, 30, 60, 240, 1440, 10080, 21600
 since = return committed OHLC data since given id (optional.  exclusive)
 '''
-def get_ohlc_df(pair, codename, interval=1440, since=None):
-    url = 'https://api.kraken.com/0/public/OHLC?pair=' + pair + '&interval=' + str(interval)
-    r = requests.get(url)
-    x = r.json()
-    index_arr = []
-    price_arr = []
+class DataApi(AssetPairs):
 
-    for row in x['result'][codename]:
-        index_arr.append(row[0])
-        price_arr.append([float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7])])
+    def __init__(self, pair):
+        self.df = pd.DataFrame()
+        self.pair = pair
+        self.project_id = 'data-258920'
+        super().__init__()
+
+
+    def get_ohlc_df(self, interval=1440, since=None):
+        url = 'https://api.kraken.com/0/public/OHLC?pair=' + self.pair + '&interval=' + str(interval)
+        r = requests.get(url)
+        x = r.json()
+        index_arr = []
+        price_arr = []
+
+        for row in x['result'][self.asset_pairs_USD[self.pair]['codename']]:
+            index_arr.append(row[0])
+            price_arr.append([float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7])])
+        
+        columns = ['open', 'high', 'low', 'close', 'vwap', 'volume', 'count']
+        self.df = pd.DataFrame(price_arr, columns = columns, index = index_arr)
+        return self.df
+
+    def ohlc_to_gbq(self, df):
+        print(self.pair)
+        table_id = 'prices.' + self.pair
+        pd_gbq.to_gbq(df, table_id, project_id = self.project_id)
     
-    columns = ['open', 'high', 'low', 'close', 'vwap', 'volume', 'count']
-    df = pd.DataFrame(price_arr, columns = columns, index = index_arr)
-    # print(df)
-    return df
+    def save_ohlc_csv(self, df, pair):
+        path = '/Users/bpennington/git/data-python/kraken/data/' + pair + '_ohlc.csv'
+        self.df.to_csv(path)
 
-def save_ohlc_csv(df, pair):
-    path = '/Users/bpennington/git/data-python/kraken/data/' + pair + '_ohlc.csv'
-    df.to_csv(path)
+    def open_ohlc(self, pair):
+        path = '/Users/bpennington/git/data-python/kraken/data/' + pair + '_ohlc.csv'
+        self.df = pd.read_csv(path, index_col = 0)
+        return self.df
 
-def open_ohlc(pair):
-    path = '/Users/bpennington/git/data-python/kraken/data/' + pair + '_ohlc.csv'
-    df = pd.read_csv(path, index_col = 0)
-    return df
+    def get_prices(self, pairs_arr):
 
+        pairs_arr = ['ZECUSD','XMRUSD','BCHUSD', 'XBTUSD','DASHUSD','LTCUSD','ETHUSD','ETCUSD', 'XRPUSD']
+        i=0
+        for pair in pairs_arr:
+            df = self.open_ohlc(pair)
+            if i==0:
+                df_comb = pd.DataFrame(df['open'].tolist(), index=df.index, columns = [[pair]])
+                print(df_comb)
+            else:
+                df_comb[pair] = df['open'].tolist()
+                # df_comb = pd.concat([df_comb, df], join='inner', axis=1)
+            i+=1
 
-def get_prices():
-    pairs = ['ZECUSD','XMRUSD','BCHUSD', 'XBTUSD','DASHUSD','LTCUSD','ETHUSD','ETCUSD', 'XRPUSD']
-    i=0
-    for pair in pairs:
-        df = open_ohlc(pair)
-        if i==0:
-            df_comb = pd.DataFrame(df['open'].tolist(), index=df.index, columns = [[pair]])
-            print(df_comb)
-        else:
-            df_comb[pair] = df['open'].tolist()
-            # df_comb = pd.concat([df_comb, df], join='inner', axis=1)
-        i+=1
-
-    return df_comb
+        return df_comb
 
 
 
@@ -143,9 +158,9 @@ def get_prices():
 # print(asset_pairs_USD)
 # save_AssetPairs(asset_pairs_USD, 'USD')
 
-df = get_prices()
-df.index = pd.to_datetime(df.index, unit='s')
-print(df)
+# df = get_prices()
+# df.index = pd.to_datetime(df.index, unit='s')
+# print(df)
 
 
 # ap = AssetPairs()
