@@ -59,6 +59,6 @@ If people like your project they’ll want to learn how they can use it. To do s
 ```
 
 ## Useful Links
-Package setup instructions: https://towardsdatascience.com/build-your-first-open-source-python-project-53471c9942a7 \
-README instructions: https://medium.com/@meakaakka/a-beginners-guide-to-writing-a-kickass-readme-7ac01da88ab3 \
-Github commits: https://medium.com/@panjeh/makefile-git-add-commit-push-github-all-in-one-command-9dcf76220f48 \
+- [Package setup instructions](https://towardsdatascience.com/build-your-first-open-source-python-project-53471c9942a7)
+- [README instructions](https://medium.com/@meakaakka/a-beginners-guide-to-writing-a-kickass-readme-7ac01da88ab3)
+- [Github commits](https://medium.com/@panjeh/makefile-git-add-commit-push-github-all-in-one-command-9dcf76220f48)
