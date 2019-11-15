@@ -1,17 +1,61 @@
-from api import AssetPairs
-from api import DataApi
-import api
+from .api import AssetPairs
+from .api import DataApi
+import requests
+from BigQuery import GBQ
+import pandas as pd
+from google.cloud import bigquery
+# client = bigquery.Client()
 
-ap = api.AssetPairs()
-da = api.DataApi('XBTUSD')
-df = da.get_ohlc_df()
-print(df)
-da.ohlc_to_gbq(df)
+# ap = api.AssetPairs()
+
+def GBQ_read_table():
+    gbq = GBQ()
+    table_id = 'ETHUSD'
+    s = gbq.read_table(table_id, dt=True)
+    return s
+
+def GBQ_agg_tables():
+    gbq = GBQ()
+    pairs = ['ZECUSD','XMRUSD','BCHUSD', 'XBTUSD','DASHUSD','LTCUSD','ETHUSD','ETCUSD', 'XRPUSD']
+    df = gbq.agg_tables(pairs)
+    print(df)
+
+def get_credentials():
+    return None
 
 
 
 
 
+
+
+
+#     da = DataApi(pair)
+#     df = da.get_ohlc_df()
+#     print(df)
+#     da.ohlc_to_gbq(df, if_exists = 'replace')
+#     i += 1
+
+
+
+# da = DataApi('ADAUSD')
+# df = da.get_ohlc_df()
+# print(df)
+
+
+
+
+# da = api.DataApi('XBTUSD')
+# df = da.get_ohlc_df()
+# print(df)
+# da.ohlc_to_gbq(df)
+
+# project_id = 'data-258920'
+# dataset_id = 'prices'
+# table_id = 'ADAUSD'
+# url = 'https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/data'.format(project_id, dataset_id, table_id)
+# r = requests.get(url)
+# print(r)
 
 
 # import pandas_gbq

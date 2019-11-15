@@ -104,21 +104,24 @@ class DataApi(AssetPairs):
         url = 'https://api.kraken.com/0/public/OHLC?pair=' + self.pair + '&interval=' + str(interval)
         r = requests.get(url)
         x = r.json()
-        index_arr = []
+        index_ts = []
         price_arr = []
 
         for row in x['result'][self.asset_pairs_USD[self.pair]['codename']]:
-            index_arr.append(row[0])
-            price_arr.append([float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7])])
+            index_ts.append(row[0])
+            price_arr.append([row[0], float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7])])
         
-        columns = ['open', 'high', 'low', 'close', 'vwap', 'volume', 'count']
-        self.df = pd.DataFrame(price_arr, columns = columns, index = index_arr)
+        columns = ['ts', 'open', 'high', 'low', 'close', 'vwap', 'volume', 'count']
+        index_dt = pd.to_datetime(index_ts, unit='s')
+        self.df = pd.DataFrame(price_arr, columns = columns, index = index_dt)
         return self.df
+    # def gbq_to_loc(self):
+    #     df = pandas_gbq.read_gbq(sql, project_id=self.project_id)
 
-    def ohlc_to_gbq(self, df):
+    def ohlc_to_gbq(self, df, if_exists):
         print(self.pair)
         table_id = 'prices.' + self.pair
-        pd_gbq.to_gbq(df, table_id, project_id = self.project_id)
+        pd_gbq.to_gbq(df, table_id, project_id = self.project_id, if_exists=if_exists)
     
     def save_ohlc_csv(self, df, pair):
         path = '/Users/bpennington/git/data-python/kraken/data/' + pair + '_ohlc.csv'
