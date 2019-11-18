@@ -4,6 +4,7 @@ import json
 import csv
 import time
 import pandas_gbq as pd_gbq
+from datetime import date
 
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -147,6 +148,23 @@ class DataApi(AssetPairs):
             i+=1
 
         return df_comb
+    
+    def get_daily_prices(self):
+        url = 'https://api.kraken.com/0/public/Ticker?pair=' + ','.join(pairs)
+        r = requests.get(url)
+        x = r.json()
+        price_dict = {}
+        for pair in pairs:
+            pair_dict = x['result'][self.asset_pairs_USD[pair]['codename']]
+            price_dict[pair] = pair_dict['o']
+
+        # dt = date.today()
+        # ts = dt.strftime('%s')
+        price_dict['ts'] = date.today().strftime('%s')
+        return price_dict
+
+        
+
 
 
 

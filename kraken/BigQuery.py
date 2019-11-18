@@ -3,6 +3,7 @@ import pandas_gbq
 import pandas as pd
 from google.cloud import bigquery
 client = bigquery.Client()
+from api import 
 
 class GBQ:
 
@@ -45,7 +46,7 @@ class GBQ:
             else:
                 df = pd.concat([df,df_], axis=1)
                 print(df)
-        df.name = 'combined'
+        df.name = 'daily_combined'
         return df
     
     def get_credentials():
@@ -57,13 +58,39 @@ class GBQ:
         credentials = pydata_google_auth.get_user_credentials(scopes)
         return credentials
 
-# def write_table(self, df, if_exists='replace'):
-#     table_id = self.dataset_id + '.' + df.name
-#     df.to_gbq(destination_table = table_id, project_id = self.project_id, if_exists=if_exists)
+    def write_table(self, df, if_exists='replace'):
+        table_id = self.dataset_id + '.' + df.name
+        df.to_gbq(destination_table = table_id, project_id = self.project_id, if_exists=if_exists)
 
-# def append_table(self, pair, if_exists='append'):
-#     table_id = self.dataset_id + '.' + self.pair
-#     df.to_gbq(destination_table = table_id, project_id = self.project_id, if_exists=if_exists)
+    def update_all_prices(self):
+        markets = [x for x in ap.asset_pairs_USD.keys()]
+        last_ts = get_last_ts()
+        price_dict = {}
+        data = get_daily_prices()
+    
+    def append_pair_table(self, pair):
+        table_id = self.dataset_id + '.' + pair
+        df.to_gbq(destination_table = table_id, project_id = self.project_id, if_exists=append)
+
+    def get_last_ts():
+        last_ts = 1
+        return last_ts
+
+    
 
 
+    def get_ohlc_dfs(self, interval=1440, since=None):
+        url = 'https://api.kraken.com/0/public/OHLC?pair=' + self.pair + '&interval=' + str(interval)
+        r = requests.get(url)
+        x = r.json()
+        index_ts = []
+        price_arr = []
 
+        for row in x['result'][self.asset_pairs_USD[self.pair]['codename']]:
+            index_ts.append(row[0])
+            price_arr.append([row[0], float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7])])
+        
+        columns = ['ts', 'open', 'high', 'low', 'close', 'vwap', 'volume', 'count']
+        index_dt = pd.to_datetime(index_ts, unit='s')
+        self.df = pd.DataFrame(price_arr, columns = columns, index = index_dt)
+        return self.df
